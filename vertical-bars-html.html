@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>投資金額圖表</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 4px;
+        }
+        .charts-container {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+        }
+        .chart {
+            width: 200px;
+            text-align: center;
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .bar-container {
+            height: 400px;
+            width: 120px;
+            background: #f5f5f5;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 4px;
+        }
+        .bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            transition: opacity 0.3s;
+        }
+        .warning-line {
+            position: absolute;
+            width: 140px;
+            height: 2px;
+            background: red;
+            left: -10px;
+        }
+        .warning-text {
+            position: absolute;
+            right: -50px;
+            top: -10px;
+            color: red;
+            font-size: 12px;
+        }
+        .data-list {
+            margin-top: 20px;
+            text-align: left;
+            padding: 0 10px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .data-item:hover {
+            background: #f5f5f5;
+        }
+        
+        /* 顏色定義 */
+        .total-budget { background: #1a365d; }
+        .available-amount { background: #2c5282; }
+        .approved-amount { background: #4299e1; }
+        .invested-amount { background: #90cdf4; }
+        
+        /* 互動效果 */
+        .highlight-total .bar { opacity: 0.2; }
+        .highlight-total .total-budget { opacity: 1; }
+        
+        .highlight-available .bar { opacity: 0.2; }
+        .highlight-available .available-amount,
+        .highlight-available .approved-amount,
+        .highlight-available .invested-amount { opacity: 1; }
+        
+        .highlight-approved .bar { opacity: 0.2; }
+        .highlight-approved .approved-amount,
+        .highlight-approved .invested-amount { opacity: 1; }
+        
+        .highlight-invested .bar { opacity: 0.2; }
+        .highlight-invested .invested-amount { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 圖例 -->
+        <div class="legend">
+            <div class="legend-item" onmouseover="highlight('total')" onmouseout="removeHighlight()">
+                <div class="legend-color total-budget"></div>
+                <span>總預算金額</span>
+            </div>
+            <div class="legend-item" onmouseover="highlight('available')" onmouseout="removeHighlight()">
+                <div class="legend-color available-amount"></div>
+                <span>可動撥金額</span>
+            </div>
+            <div class="legend-item" onmouseover="highlight('approved')" onmouseout="removeHighlight()">
+                <div class="legend-color approved-amount"></div>
+                <span>已核准金額</span>
+            </div>
+            <div class="legend-item" onmouseover="highlight('invested')" onmouseout="removeHighlight()">
+                <div class="legend-color invested-amount"></div>
+                <span>已注資金額</span>
+            </div>
+        </div>
+
+        <!-- 圖表容器 -->
+        <div class="charts-container">
+            <!-- 含撤案 -->
+            <div class="chart">
+                <div class="chart-title">含撤案</div>
+                <div class="bar-container" id="withCancellation">
+                    <div class="bar total-budget" style="height: 100%;"></div>
+                    <div class="bar available-amount" style="height: 80%;"></div>
+                    <div class="bar approved-amount" style="height: 60%;"></div>
+                    <div class="bar invested-amount" style="height: 40%;"></div>
+                    <div class="warning-line" style="bottom: 60%;">
+                        <span class="warning-text">警示線</span>
+                    </div>
+                </div>
+                <div class="data-list">
+                    <div class="data-item" onmouseover="highlight('total')" onmouseout="removeHighlight()">
+                        <span>總預算金額</span>
+                        <span>1,000,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('available')" onmouseout="removeHighlight()">
+                        <span>可動撥金額</span>
+                        <span>800,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('approved')" onmouseout="removeHighlight()">
+                        <span>已核准金額</span>
+                        <span>600,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('invested')" onmouseout="removeHighlight()">
+                        <span>已注資金額</span>
+                        <span>400,000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 不含撤案 -->
+            <div class="chart">
+                <div class="chart-title">不含撤案</div>
+                <div class="bar-container" id="withoutCancellation">
+                    <div class="bar total-budget" style="height: 90%;"></div>
+                    <div class="bar available-amount" style="height: 70%;"></div>
+                    <div class="bar approved-amount" style="height: 50%;"></div>
+                    <div class="bar invested-amount" style="height: 30%;"></div>
+                    <div class="warning-line" style="bottom: 50%;">
+                        <span class="warning-text">警示線</span>
+                    </div>
+                </div>
+                <div class="data-list">
+                    <div class="data-item" onmouseover="highlight('total')" onmouseout="removeHighlight()">
+                        <span>總預算金額</span>
+                        <span>900,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('available')" onmouseout="removeHighlight()">
+                        <span>可動撥金額</span>
+                        <span>700,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('approved')" onmouseout="removeHighlight()">
+                        <span>已核准金額</span>
+                        <span>500,000</span>
+                    </div>
+                    <div class="data-item" onmouseover="highlight('invested')" onmouseout="removeHighlight()">
+                        <span>已注資金額</span>
+                        <span>300,000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function highlight(type) {
+            document.querySelectorAll('.bar-container').forEach(container => {
+                container.className = 'bar-container highlight-' + type;
+            });
+        }
+
+        function removeHighlight() {
+            document.querySelectorAll('.bar-container').forEach(container => {
+                container.className = 'bar-container';
+            });
+        }
+
+        // 格式化數字（加入千分位）
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+    </script>
+</body>
+</html>
